@@ -11,6 +11,7 @@ enum class Command {
     ECHO,
     EXIT,
     TYPE,
+    PWD,
     UNKNOWN
 };
 
@@ -52,6 +53,10 @@ std::string find_executable(const std::string& cmd) {
     return "";
 }
 
+std::string get_current_directory() {
+    return std::filesystem::current_path().string();
+}
+
 void execute_custom_executable(const std::string& input) {
     std::vector<std::string> args;
     std::stringstream ss(input);
@@ -69,18 +74,9 @@ void execute_custom_executable(const std::string& input) {
         return;
     }
 
-    std::vector<char*> c_args;
-    for (auto& arg : args) {
-        c_args.push_back(&arg[0]);
-    }
-    c_args.push_back(nullptr);
-
-    if (fork() == 0) {
-        execv(exe_path.c_str(), c_args.data());
+    int result = std::system(input.c_str());
+    if (result == -1) {
         std::cerr << "Failed to execute " << exe_path << std::endl;
-        std::exit(EXIT_FAILURE);
-    } else {
-        wait(nullptr);
     }
 }
 
@@ -109,6 +105,9 @@ void execute_command(const std::string& input, Command cmd) {
                     }
                 }
             }
+            break;
+        case Command::PWD:
+            std::cout << get_current_directory() << std::endl;
             break;
         case Command::UNKNOWN:
             execute_custom_executable(input);
