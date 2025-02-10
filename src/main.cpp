@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <unistd.h>
+#include <unordered_set>
 #include <sys/wait.h>
 
 enum class Command {
@@ -80,6 +81,17 @@ void execute_custom_executable(const std::string& input) {
     }
 }
 
+const std::unordered_set<std::string> BUILTIN_COMMANDS = {
+    "echo",
+    "exit",
+    "type",
+    "pwd"
+};
+
+bool is_builtin(const std::string& cmd) {
+    return BUILTIN_COMMANDS.find(cmd) != BUILTIN_COMMANDS.end();
+}
+
 void execute_command(const std::string& input, Command cmd) {
     switch (cmd) {
         case Command::ECHO:
@@ -94,7 +106,7 @@ void execute_command(const std::string& input, Command cmd) {
                 std::cout << "type: missing argument" << std::endl;
             } else {
                 std::string arg = input.substr(5);
-                if (arg == "echo" || arg == "exit" || arg == "type") {
+                if (is_builtin(arg)) {
                     std::cout << arg << " is a shell builtin" << std::endl;
                 } else {
                     std::string exe_path = find_executable(arg);
