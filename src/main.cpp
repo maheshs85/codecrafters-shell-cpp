@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <unistd.h>
-#include <unordered_set>
+#include <unordered_map>
 #include <sys/wait.h>
 
 enum class Command {
@@ -16,11 +16,27 @@ enum class Command {
     UNKNOWN
 };
 
+const std::unordered_map<std::string, Command> COMMAND_MAP = {
+    {"echo", Command::ECHO},
+    {"exit", Command::EXIT},
+    {"type", Command::TYPE},
+    {"pwd", Command::PWD}
+};
+
+
+std::string get_command_name(const std::string& input) {
+    std::stringstream ss(input);
+    std::string cmd;
+    ss >> cmd;
+    return cmd;
+}
+
 Command identify_command(const std::string& input) {
     if (input == "exit 0") return Command::EXIT;
-    if (input == "echo" || input.compare(0, 5, "echo ") == 0) return Command::ECHO;
-    if (input == "type" || input.compare(0, 5, "type ") == 0) return Command::TYPE;
-    return Command::UNKNOWN;
+    
+    std::string cmd = get_command_name(input);
+    auto it = COMMAND_MAP.find(cmd);
+    return (it != COMMAND_MAP.end()) ? it->second : Command::UNKNOWN;
 }
 
 bool is_executable(const std::filesystem::path& path) {
@@ -81,15 +97,8 @@ void execute_custom_executable(const std::string& input) {
     }
 }
 
-const std::unordered_set<std::string> BUILTIN_COMMANDS = {
-    "echo",
-    "exit",
-    "type",
-    "pwd"
-};
-
 bool is_builtin(const std::string& cmd) {
-    return BUILTIN_COMMANDS.find(cmd) != BUILTIN_COMMANDS.end();
+    return COMMAND_MAP.find(cmd) != COMMAND_MAP.end();
 }
 
 void execute_command(const std::string& input, Command cmd) {
@@ -124,6 +133,8 @@ void execute_command(const std::string& input, Command cmd) {
         case Command::UNKNOWN:
             execute_custom_executable(input);
             break;
+        case Command::EXIT:
+            break;
     }
 }
 
@@ -139,7 +150,6 @@ int main() {
         std::getline(std::cin, input);
         
         Command cmd = identify_command(input);
-        if (cmd == Command::EXIT) break;
         execute_command(input, cmd);
     }
     return 0;
