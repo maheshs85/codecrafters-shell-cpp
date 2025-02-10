@@ -31,9 +31,7 @@ std::string get_command_name(const std::string& input) {
     return cmd;
 }
 
-Command identify_command(const std::string& input) {
-    if (input == "exit 0") return Command::EXIT;
-    
+Command identify_command(const std::string& input) {    
     std::string cmd = get_command_name(input);
     auto it = COMMAND_MAP.find(cmd);
     return (it != COMMAND_MAP.end()) ? it->second : Command::UNKNOWN;
@@ -150,6 +148,9 @@ int main() {
         std::getline(std::cin, input);
         
         Command cmd = identify_command(input);
+        if (cmd == Command::EXIT) {
+            break;  // Exit the shell
+        }
         execute_command(input, cmd);
     }
     return 0;
