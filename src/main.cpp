@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include <sys/wait.h>
+#include <cstring>
 
 enum class Command {
     ECHO,
