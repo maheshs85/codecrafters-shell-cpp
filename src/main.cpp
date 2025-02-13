@@ -13,6 +13,7 @@ enum class Command {
     EXIT,
     TYPE,
     PWD,
+    CD,
     UNKNOWN
 };
 
@@ -20,7 +21,8 @@ const std::unordered_map<std::string, Command> COMMAND_MAP = {
     {"echo", Command::ECHO},
     {"exit", Command::EXIT},
     {"type", Command::TYPE},
-    {"pwd", Command::PWD}
+    {"pwd", Command::PWD},
+    {"cd", Command::CD}
 };
 
 
@@ -128,6 +130,17 @@ void execute_command(const std::string& input, Command cmd) {
         case Command::PWD:
             std::cout << get_current_directory() << std::endl;
             break;
+        case Command::CD: {
+            std::string dir = input.substr(3);
+            if (dir.empty()) {
+                std::cerr << "cd: missing argument" << std::endl;
+            } else {
+                if (chdir(dir.c_str()) != 0) {
+                    std::cerr << "cd: " << dir << ": " << strerror(errno) << std::endl;
+                }
+            }
+            break;
+        }
         case Command::UNKNOWN:
             execute_custom_executable(input);
             break;
