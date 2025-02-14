@@ -58,6 +58,24 @@ std::vector<std::string> split_path(const std::string& path_var) {
     return paths;
 }
 
+std::string expand_tilde(const std::string& path) {
+    if (path.empty() || path[0] != '~') {
+        return path;
+    }
+    
+    const char* home = std::getenv("HOME");
+    if (!home) {
+        return path;  // If HOME is not set, return original path
+    }
+    
+    // Replace ~ with home directory
+    if (path.length() == 1) {  // Just "~"
+        return home;
+    }
+    // "~/something" -> "/home/user/something"
+    return std::string(home) + path.substr(1);
+}
+
 std::string find_executable(const std::string& cmd) {
     const char* path_var = std::getenv("PATH");
     if (!path_var) return "";
@@ -136,7 +154,8 @@ void execute_command(const std::string& input, Command cmd) {
             if (dir.empty()) {
                 std::cerr << "cd: missing argument" << std::endl;
             } else {
-                if (chdir(dir.c_str()) != 0) {
+                std::string expanded_dir = expand_tilde(dir);
+                if (chdir(expanded_dir.c_str()) != 0) {
                     std::cerr << "cd: " << dir << ": " << strerror(errno) << std::endl;
                 }
             }
